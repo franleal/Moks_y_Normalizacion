@@ -47,7 +47,12 @@ app.get("/", (req, res) => {
 
 app.get("/api/productos-test",async (req,res) =>{
     try{
-        res.json(await productosFaker.getAll())
+        const allProducts = await productosFaker.getAll()
+        res.render("productosFaker", {
+            products :allProducts,
+            style:"faker.css",
+            title: "Productos Aleatorios Faker"
+        })
     }
     catch(err){
         next(err)

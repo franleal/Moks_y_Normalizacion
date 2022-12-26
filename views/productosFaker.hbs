@@ -1,0 +1,23 @@
+<h2>Productos Faker</h2>
+{{#if products.length}}
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Imagen</th>
+        </tr>
+        {{#each products}}
+            <tr>
+                <td>{{title}}</td>
+                <td>{{price}}</td>
+                <td><img
+                        class="img"
+                        src="{{thumbnail}}"
+                        alt="imagen del producto"
+                    /></td>
+            </tr>
+        {{/each}}
+    </table>
+{{else}}
+    <h3>No hay productos agregados!</h3>
+{{/if}}
