@@ -11,7 +11,9 @@ const options = require("./controllers/options.js");
 const moment = require("moment/moment");
 const productos = new Contenedor(options.mysql, "productos");
 const productosFaker = new contenedorFaker()
-const messages = new Contenedor(options.sqlite3, "mensajes");
+const messages = new Contenedor(options.mysql, "mensajes");
+const {normalize,schema} = require('normalizr')
+const util = require('util')
 
 /* Inicializacion de la configuracion */
 const app = express();
@@ -87,6 +89,9 @@ httpServer.listen(PORT, () => {
 });
 httpServer.on("error", error => console.log(`Error en servidor: ${error}`));
 
+
+
+
 io.on("connection", async socket => {
     console.log("Nuevo cliente conectado");
 
@@ -100,8 +105,31 @@ io.on("connection", async socket => {
     });
 
 
-    //Para enviar todos los mensajes en la primera conexion
+    
+    
+    
+
+    //Normalizado-------------------------------------------------------------------------------
     const listaMensajes = await messages.getAll();
+    const mensaje = new schema.Entity('mensaje')
+    const allMensajes = new schema.Entity('allMensajes',{
+        id:'mensajes',
+        mensajes:[mensaje]
+    })
+
+    function print(obj){
+        console.log(util.inspect(obj,false,null,true))
+    }
+
+    console.log("-----------------Normalizado:")
+    const mensajesNormalizados = normalize(listaMensajes,allMensajes)
+    print(mensajesNormalizados)
+
+    console.log('longitud original:' + JSON.stringify(listaMensajes).length)
+    console.log('longitud Normalizada:' + JSON.stringify(mensajesNormalizados).length)
+
+
+    //Para enviar todos los mensajes en la primera conexion
     socket.emit('messages', listaMensajes);
 
   //Evento para recibir nuevos mensajes
@@ -111,4 +139,6 @@ io.on("connection", async socket => {
         const listaMensajes = await messages.getAll();
         io.sockets.emit('messages', listaMensajes);
     });
+
+    
 });

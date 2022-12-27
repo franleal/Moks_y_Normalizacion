@@ -26,21 +26,26 @@ class Contenedor {
 
     async saveMessages(mensaje) {
         try {
-            const exists = await this.connection.schema.hasTable('mensajes');
-            console.log(exists)
+            const exists = await this.connection.schema.hasTable(this.table);
             if (!exists) {
-                await this.connection.schema.createTable('mensajes', table => {
-                    table.string("email").notNullable();
+                await this.connection.schema.createTable(this.table, table => {
+                    table.string("id").notNullable();
+                    table.string("nombre").notNullable();
+                    table.string("apellido").notNullable();
+                    table.string("edad").notNullable();
+                    table.string("alias").notNullable();
                     table.string("text").notNullable();
                     table.string("time").notNullable();
+                    table.string("avatar").notNullable();
                     console.log('TABLA CREADA')
                 });
+                console.log("Tabla creada con exito")
             } else {
-                await this.connection('mensajes').insert(mensaje);
+                await this.connection(this.table).insert(mensaje);
                 console.log('MENSAJE AGREGADO A LA TABLAS')
             }
         } catch (error) {
-            console.log(`Error agregando objeto a la tabla: ${error.message}`);
+            console.log(`Error agregando mensaje a la tabla: ${error.message}`);
         }
     }
 
