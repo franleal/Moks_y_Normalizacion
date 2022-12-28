@@ -1,8 +1,11 @@
 const socket = io.connect();
-
+socket.on("messages", normalizado => {
+    render2(normalizado);
+});
 socket.on("messages", data => {
     render(data);
 });
+
 
 function addMessage(){
     
@@ -43,4 +46,12 @@ function render(data){
     }).join(' ')
 
     document.getElementById('messages').innerHTML = html
+}
+
+function render2(normalizado){
+    
+    const html = `<h2>Chat normalizado al ${normalizado}%</h2>`
+    document.getElementById("porcentaje").innerHTML = html
+    return(html)
+    
 }

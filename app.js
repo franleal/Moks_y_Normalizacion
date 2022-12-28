@@ -104,18 +104,13 @@ io.on("connection", async socket => {
         
     });
 
-
-    
-    
-    
-
     //Normalizado-------------------------------------------------------------------------------
     const listaMensajes = await messages.getAll();
     const mensaje = new schema.Entity('mensaje')
     const allMensajes = new schema.Entity('allMensajes',{
         id:'mensajes',
         mensajes:[mensaje]
-    })
+    },{idAttribute:'mensajes'})
 
     function print(obj){
         console.log(util.inspect(obj,false,null,true))
@@ -124,13 +119,16 @@ io.on("connection", async socket => {
     console.log("-----------------Normalizado:")
     const mensajesNormalizados = normalize(listaMensajes,allMensajes)
     print(mensajesNormalizados)
-
+    
     console.log('longitud original:' + JSON.stringify(listaMensajes).length)
     console.log('longitud Normalizada:' + JSON.stringify(mensajesNormalizados).length)
-
-
+    const mensajeslist=JSON.stringify(listaMensajes).length
+    const mensajesNorm = JSON.stringify(mensajesNormalizados).length
+    const normalizado = (mensajeslist*100)/mensajesNorm
+    
     //Para enviar todos los mensajes en la primera conexion
-    socket.emit('messages', listaMensajes);
+    socket.emit('messages', listaMensajes,normalizado);
+    socket.emit('messages', normalizado)
 
   //Evento para recibir nuevos mensajes
     socket.on('new-message', async data => {
@@ -140,5 +138,4 @@ io.on("connection", async socket => {
         io.sockets.emit('messages', listaMensajes);
     });
 
-    
 });
