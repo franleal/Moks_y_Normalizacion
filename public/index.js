@@ -55,3 +55,4 @@ function render2(normalizado){
     return(html)
     
 }
+

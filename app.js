@@ -1,19 +1,29 @@
 /* Importacion de librerias internas y externas */
 const express = require("express");
+const session = require('express-session')
 const { Server: HttpServer } = require("http");
 const { Server: IOServer } = require("socket.io");
 const bp = require("body-parser");
 const routers = require("./public/routers");
 const handlebars = require("express-handlebars");
+const { parse } = require("path");
+const util = require('util');
+
+/* Contenedores----------------------------------------------- */
 const Contenedor = require("./controllers/SQLController.js");
 const contenedorFaker = require("./api/productosFaker")
 const options = require("./controllers/options.js");
 const moment = require("moment/moment");
+
+/*------------------Uso de Contenedores----------------------- */
 const productos = new Contenedor(options.mysql, "productos");
 const productosFaker = new contenedorFaker()
 const messages = new Contenedor(options.mysql, "mensajes");
 const {normalize,schema} = require('normalizr')
-const util = require('util')
+
+/*------------------importacion mongo---------------------- */
+const mongoStore = require('connect-mongo')
+const advancedOptions = {useNewUrlParser:true,useUnifiedTopology:true}
 
 /* Inicializacion de la configuracion */
 const app = express();
@@ -24,6 +34,16 @@ const PORT = 8080;
 /* middlewares incorporados */
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
+app.use(session({
+    store:mongoStore.create({
+        mongoUrl:'mongodb+srv://franSession:123@cluster0.sartkow.mongodb.net/?retryWrites=true&w=majority',
+        mongoOptions:advancedOptions,
+        ttl: 600
+    }),
+    secret:'secret',
+    resave:false,
+    saveUninitialized:false
+}))
 
 app.engine(
     "hbs",
@@ -40,8 +60,9 @@ app.set("view engine", "hbs");
 app.use("/", routers);
 app.use(express.static("public"));
 
-app.get("/", (req, res) => {
+app.get("/", verificarLogin, (req, res) => {
     res.render("welcome", {
+        user:req.session.userName,
         style: "welcome.css",
         title: "Bienvenido",
     });
@@ -49,7 +70,7 @@ app.get("/", (req, res) => {
 
 app.get("/api/productos-test",async (req,res) =>{
     try{
-        const allProducts = await productosFaker.getAll()
+        
         res.render("productosFaker", {
             products :allProducts,
             style:"faker.css",
@@ -60,6 +81,35 @@ app.get("/api/productos-test",async (req,res) =>{
         next(err)
     }
 
+})
+
+function verificarLogin(req,res,next){
+    if(req.session.userName && req.session.userName != '' ){
+        next()
+    }else{
+        res.redirect('/api/login')
+    }
+}
+
+app.get("/api/login",async (req,res,next)=>{
+    
+    res.render("login", {
+        style:"login.css",
+        title: "Login"
+    })
+    
+})
+
+app.post("/api/login",async (req,res,next) =>{
+    const data = req.body.login
+    console.log(data)
+    if(data !== 'fran'){
+        console.log('nombre de usuario incorrecto')
+    }else{
+        req.session.userName = data
+        res.redirect("/")
+        
+    }
 })
 
 app.post('/api/productos-test',async (req,res,next)=>{
